@@ -11,7 +11,8 @@ class Client(commands.Bot):
             "commands.prestige_calculations", 
             "commands.basic", 
             "commands.stats", 
-            "commands.map_quests", 
+            "commands.map_quests",
+            "commands.leaderboards",
         ]
 
     async def setup_hook(self):

@@ -14,7 +14,14 @@ stats = discord.Embed(title="Stats", color=discord.Color.greyple())
 stats.add_field(name="/overview *player*", value="Displays an overview of the player's stats", inline=False)
 stats.add_field(name="/compare *player1* *player2*", value="Compares the overview stats of two players", inline=False)
 
-helpPages = [prestigeCalculations, mapQuests, stats]
+leaderboards = discord.Embed(title="Leaderboards", color=discord.Color.greyple())
+leaderboards.add_field(name="/leaderboard *leaderboard*", value="Displays the leaderboards for a certain leaderboard", inline=False)
+leaderboards.add_field(name="/leaderboard-combat *leaderboard*", value="Displays the leaderboards for a certain combat related leaderboard", inline=False)
+leaderboards.add_field(name="/leaderboards", value="Displays the top 10 players for each leaderboard", inline=False)
+leaderboards.add_field(name="/leaderboard-positions *player*", value="Displays a player's leaderboard positions (top 500 of each leaderboard)", inline=False)
+leaderboards.add_field(name="/leaderboard-compare-positions *player1* *player2*", value="Compares the leaderboard positions of two players", inline=False)
+
+helpPages = [prestigeCalculations, mapQuests, stats, leaderboards]
 currentPage = -1
 
 

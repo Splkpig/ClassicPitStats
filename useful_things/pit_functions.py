@@ -4,6 +4,8 @@ from useful_things import formatting_functions
 
 import json
 
+CLASSIC_API = "https://classic.pitpal.rocks/remake-api/api"
+
 # Return the hex color for a prestige's corresponding bracket
 def calcBracketColor(prestige: int):
     if prestige == 0:
@@ -106,60 +108,46 @@ def calculateFactionTier(points: int):
     return 7
 
 
-# Get the players from a certain leaderboard page and length
+# Format a Pit Classic leaderboard entry as "[prestige level] name: value"
+def formatLeaderboardPlayer(lb: str, lbPlayer: dict):
+    name = lbPlayer["ign"]
+    if name == 'Splkpig':
+        name = f'<:splkpig:1172711478223188068> {name}'
+
+    value = lbPlayer.get("value", 0)
+    if lb == "playtime_minutes":
+        value = formatting_functions.format_playtime(int(value))
+    else:
+        value = f"{int(value):,}"
+
+    return f"[{formatting_functions.int_to_roman(lbPlayer['prestige'])}{lbPlayer['level']}] {name}: {value}"
+
+
+# Get the players from a certain leaderboard page and length (page is 0 indexed, the API is 1 indexed)
 def getLeaderboardData(lb: str, players: int, page: int):
-    with open("../PitStats/tokens_and_keys/PP_API_KEY.json", 'r') as f:
-        data = json.load(f)
-        key = data['TOKEN']
+    url: str = f"{CLASSIC_API}/leaderboard/{lb}?page={page + 1}&limit={players}"
+    leaderboard = getInfo(url)
 
-    while True:
-        urlPP: str = f"https://pitpanda.rocks/api/leaderboard/{lb}?page={page}&pageSize={players}&{key}"
-        leaderboard = getInfo(urlPP)
+    if "data" not in leaderboard:
+        print(url)
+        print(leaderboard.get("message", "invalid url"))
+        return []
 
-        players = []
-
-        if not leaderboard["success"]:
-            print(urlPP)
-            try:
-                print(leaderboard["error"])
-            except KeyError:
-                print("invalid url")
-            return
-        else:
-            leaderboard = leaderboard["leaderboard"]
-
-            for lbPlayer in leaderboard:
-                players.append(formatting_functions.extract_name(lbPlayer["name"]))
-
-        return players
+    return [formatLeaderboardPlayer(lb, lbPlayer) for lbPlayer in leaderboard["data"]]
 
 # Get the first 10 players of a certain leaderboard
 def getLeaderboardDataAll(lb: str, players: int):
-    with open("../PitStats/tokens_and_keys/PP_API_KEY.json", 'r') as f:
-        data = json.load(f)
-        key = data['TOKEN']
+    return getLeaderboardData(lb, players, 0)
 
-    while True:
-        urlPP: str = f"https://pitpanda.rocks/api/leaderboard/{lb}?page=0&pageSize={players}&{key}"
-        leaderboard = getInfo(urlPP)
+# Get the positions of players (by UUID) on a certain leaderboard, only the top 500 are checked
+def getLeaderboardPositions(lb: str, uuids: list):
+    url: str = f"{CLASSIC_API}/leaderboard/{lb}?limit=500"
+    leaderboard = getInfo(url)
 
-        players = []
+    positions = {}
+    for lbPlayer in leaderboard.get("data", []):
+        uuid = lbPlayer["uuid"].replace("-", "")
+        if uuid in uuids:
+            positions[uuid] = lbPlayer["rank"]
 
-        if not leaderboard["success"]:
-            print(urlPP)
-            try:
-                print(leaderboard["error"])
-            except KeyError:
-                print("invalid url")
-            return
-        else:
-            leaderboard = leaderboard["leaderboard"]
-
-            for lbPlayer in leaderboard:
-                players.append(formatting_functions.extract_name(lbPlayer["name"]))
-
-        return players
-
-
-
-
+    return positions
